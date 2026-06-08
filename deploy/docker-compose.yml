@@ -1,0 +1,191 @@
+name: haproxy-load-balancer-project
+
+services:
+  # HAProxy Load Balancer
+  haproxy:
+    build:
+      context: ./haproxy
+    container_name: haproxy_balancer
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        export STATS_USER=$$(cat /run/secrets/stats_user)
+        export STATS_PASSWORD=$$(cat /run/secrets/stats_password)
+        exec haproxy -f /usr/local/etc/haproxy/haproxy.cfg
+    volumes:
+      - ../config/haproxy/haproxy.conf:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "80:8080"
+      - "8404:8404"
+    networks:
+      - frontend-net
+      - backend-net
+      - monitoring-net
+    secrets:
+      - stats_user
+      - stats_password
+    depends_on:
+      nginx1:
+        condition: service_healthy
+      nginx2:
+        condition: service_healthy
+      nginx3:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8404/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  # Nginx Backend Node 1
+  nginx1:
+    build:
+      context: ./nginx
+    container_name: nginx_backend_1
+    hostname: nginx_backend_1
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:uid=101,gid=101,mode=777
+      - /var/run:uid=101,gid=101,mode=777
+      - /tmp:uid=101,gid=101,mode=777
+    volumes:
+      - ../config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8081/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  # Nginx Backend Node 2
+  nginx2:
+    build:
+      context: ./nginx
+    container_name: nginx_backend_2
+    hostname: nginx_backend_2
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:uid=101,gid=101,mode=777
+      - /var/run:uid=101,gid=101,mode=777
+      - /tmp:uid=101,gid=101,mode=777
+    volumes:
+      - ../config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8081/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  # Nginx Backend Node 3
+  nginx3:
+    build:
+      context: ./nginx
+    container_name: nginx_backend_3
+    hostname: nginx_backend_3
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:uid=101,gid=101,mode=777
+      - /var/run:uid=101,gid=101,mode=777
+      - /tmp:uid=101,gid=101,mode=777
+    volumes:
+      - ../config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8081/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  # Prometheus TSDB
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: prometheus_monitor
+    volumes:
+      - ../config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring-net
+    restart: unless-stopped
+
+  # Grafana Dashboard UI
+  grafana:
+    image: grafana/grafana:10.0.3
+    container_name: grafana_dashboard
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin_secret_change_me
+    volumes:
+      - ../config/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../config/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring-net
+    restart: unless-stopped
+
+  # Host OS Metrics Exporter
+  node-exporter:
+    image: prom/node-exporter:v1.6.0
+    container_name: node_exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - monitoring-net
+    restart: unless-stopped
+
+  # Container Metrics Exporter
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: cadvisor_exporter
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - monitoring-net
+    restart: unless-stopped
+
+networks:
+  frontend-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+  backend-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.29.0.0/16
+  monitoring-net:
+    driver: bridge
+
+secrets:
+  stats_user:
+    file: ./secrets/stats_user.txt
+  stats_password:
+    file: ./secrets/stats_password.txt

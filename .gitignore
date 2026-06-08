@@ -1,0 +1,48 @@
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Secrets and certs
+certs/
+secrets/*.txt
+!secrets/stats_auth.example.txt
+
+# Log directories
+logs/
+*.log
+
+# Docker/Compose
+.docker/
+docker-compose.override.yml
+
+# Python / Pytest
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+ENV/
+
+# LaTeX / PDF compilation debris
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.toc
+*.synctex.gz
+*.pdf
+*.out
+*.nav
+*.snm
+*.vrb
+*.bcf
+*.xml
+*.blg
+*.bbl
+
+# OS files
+.DS_Store
+Thumbs.db

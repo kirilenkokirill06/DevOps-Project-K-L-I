@@ -1,0 +1,14 @@
+.git
+.github
+.gitignore
+.dockerignore
+thesis/
+deploy/scripts/tests/
+README.md
+LICENSE.txt
+docs/
+*.pdf
+.pytest_cache/
+__pycache__/
+*.pyc
+*venv/

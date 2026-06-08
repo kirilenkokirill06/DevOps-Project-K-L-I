@@ -1,0 +1,67 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+
+\title{Настройка балансировщика нагрузки HAProxy}
+\subtitle{Курсовой проект по курсу <<Администрирование ОС Linux>>}
+\author{Выполнил: студент гр. ХХ-ХХ}
+\institute{Кафедра Системного Администрирования}
+\date{2026}
+
+\usetheme{Madrid}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{Цель и задачи проекта}
+    \textbf{Цель:} Создание отказоустойчивой и масштабируемой системы веб-серверов с балансировкой нагрузки на базе HAProxy.
+    
+    \vspace{0.3cm}
+    \textbf{Задачи:}
+    \begin{itemize}
+        \item Настройка HAProxy в режиме Round Robin.
+        \item Изоляция инфраструктуры с помощью Docker bridge сетей.
+        \item Реализация Sticky Sessions на куках.
+        \item Сбор метрик с помощью Prometheus и Grafana.
+        \item Написание сценариев автоматизированного Chaos Engineering тестирования.
+    end{itemize}
+\end{frame}
+
+\begin{frame}{Архитектура решения}
+    \begin{block}{Сетевые контуры}
+        \begin{itemize}
+            \item \textbf{frontend-net:} Только клиент и балансировщик (HAProxy).
+            \item \textbf{backend-net:} Изолированный сегмент между HAProxy и тремя бэкендами Nginx.
+            \item \textbf{monitoring-net:} Контур сбора метрик (Prometheus, Grafana, cAdvisor).
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Концепция безопасности (Hardening)}
+    \begin{itemize}
+        \item Запуск всех контейнеров от пользователей без прав суперпользователя (\textbf{non-root}).
+        \item Настройка файловой системы бэкендов в режиме \textbf{read-only}.
+        \item Монтирование временных папок Nginx во временную файловую систему \textbf{tmpfs}.
+        \item Загрузка параметров ядра через \textbf{sysctl} (защита от SYN Flood, IP-spoofing).
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Интеграционное тестирование и Chaos Engineering}
+    \begin{itemize}
+        \item \textbf{Тест Round Robin:} Проверка распределения HTTP запросов.
+        \item \textbf{Тест Sticky Sessions:} Проверка удержания сессии клиента по cookie.
+        \item \textbf{Сценарий отказа (Chaos):}
+        \begin{itemize}
+            \item Программный останов 1 или 2 бэкенд серверов.
+            \item Замер времени переключения на живой узел.
+            \item Проверка отсутствия ошибок HTTP 502/503 на стороне клиента.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Результаты}
+    Разработан законченный IaC-репозиторий проекта, позволяющий одной командой развернуть готовую инфраструктуру с балансировкой, мониторингом и системой контроля надежности.
+\end{frame}
+
+\end{document}
