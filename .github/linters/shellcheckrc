@@ -1,0 +1,8 @@
+# ShellCheck configuration file
+# Enable all extra warnings
+enable=all
+
+# Exclude specific rules if necessary
+# SC2155: Declare and assign separately to avoid masking return values (we handle it or disable locally)
+# SC1090/SC1091: Can't follow non-constant source. We will allow this since source is used dynamically.
+disable=SC2155,SC1091

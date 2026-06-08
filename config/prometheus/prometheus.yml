@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  # HAProxy Load Balancer Metrics
+  - job_name: 'haproxy'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['haproxy:8404']
+
+  # Host Metrics from Node Exporter
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # Container Metrics from cAdvisor
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']

@@ -1,0 +1,54 @@
+name: PR Validation and Linting
+
+on:
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint:
+    name: Code Quality Linters
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # 1. ShellCheck (Bash Linting)
+      - name: ShellCheck Linker
+        uses: ludeeus/action-shellcheck@master
+        with:
+          sc_flags: "-Cauto -rc"
+        env:
+          SHELLCHECK_OPTS: "-f gcc"
+
+      # 2. Hadolint (Dockerfile Linting)
+      - name: Hadolint Linter
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: "deploy/haproxy/Dockerfile"
+
+      - name: Hadolint Nginx Linter
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: "deploy/nginx/Dockerfile"
+
+      # 3. Yamllint (YAML Linting)
+      - name: YAML Linter
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: "deploy/docker-compose.yml config/prometheus/prometheus.yml"
+          config_file: ".github/linters/.yamllint"
+
+      # 4. Flake8 (Python PEP8 Linting)
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install Linting dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+
+      - name: Flake8 Linter
+        run: |
+          flake8 --config=.github/linters/.flake8 deploy/scripts/tests/

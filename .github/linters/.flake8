@@ -1,0 +1,10 @@
+[flake8]
+# PEP 8 formatting limits
+max-line-length = 120
+exclude = .git,__pycache__,docs,venv,.venv,.pytest_cache
+ignore =
+    # E203: Whitespace before ':' (not PEP8 compliant according to black)
+    E203,
+    # W503: Line break occurred before a binary operator (not PEP8 compliant according to black)
+    W503
+max-complexity = 10

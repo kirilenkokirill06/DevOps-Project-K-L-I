@@ -1,0 +1,8 @@
+# Hadolint configuration file
+ignored:
+  # Pin versions in apt get install - allowed since it's alpine (apk) and we want system packages
+  - DL3008
+  # Pin versions in apk add - allowed to just use latest stable package updates
+  - DL3018
+  # Avoid additional packages in apk add
+  - DL3019

@@ -1,0 +1,18 @@
+extends: default
+
+rules:
+  # Check line lengths (relaxed for compose configs)
+  line-length:
+    max: 160
+    level: warning
+
+  # Allow multi-line command indentation typical in Docker Compose
+  indentation:
+    spaces: 2
+    indent-sequences: true
+
+  # Relax truthiness checks (Docker Compose files use true/false/yes/no frequently)
+  truthy: disable
+
+  # Document start marker rules
+  document-start: disable
