@@ -77,8 +77,6 @@ project-root/
 │       ├── bootstrap.sh       # Первичная настройка ОС и установка Docker
 │       └── tests/
 │           └── test_integration.py # Интеграционные тесты и Chaos сценарии
-└── thesis/
-    └── sources/               # Материалы для курсового проекта
 ```
 
 ---
